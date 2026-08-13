@@ -9,6 +9,20 @@ async function addLayer(page: Page) {
   await page.getByRole("button", { name: "New raster layer" }).click();
 }
 
+/** Expand the panel without requiring a selected layer. */
+async function openTransformPanel2(page: Page) {
+  const collapse = page.getByRole("button", { name: "Expand Transform" });
+  if (await collapse.count() > 0) await collapse.click();
+}
+
+/** The Transform panel ships collapsed (five expanded panels would push Layers
+ *  off the dock), so specs that read its controls open it first. */
+async function openTransformPanel(page: Page) {
+  const collapse = page.getByRole("button", { name: "Expand Transform" });
+  if (await collapse.count() > 0) await collapse.click();
+  await expect(page.getByTestId("transform-rotation")).toBeVisible();
+}
+
 /** The last update_transform call's args. */
 async function lastTransform(log: RpcRecord[], count = 1) {
   const calls = await waitForCalls(log, "update_transform", count);
@@ -21,6 +35,7 @@ test.describe("Transform panel", () => {
   test.beforeEach(async ({ page }) => {
     log = await openEditor(page);
     await addLayer(page);
+    await openTransformPanel(page);
   });
 
   test("is in the right dock and lists the transform controls", async ({ page }) => {
@@ -129,6 +144,13 @@ test.describe("Transform panel", () => {
     await expect(page.getByTestId("transform-panel")).toHaveCount(0);
   });
 
+  test("it ships collapsed, so the Layers panel keeps the dock", async ({ page }) => {
+    await openEditor(page); // a fresh editor, without the beforeEach's expansion
+    await expect(page.getByTestId("transform-panel")).toBeVisible();
+    await expect(page.getByTestId("transform-rotation")).toHaveCount(0);
+    await expect(page.getByTestId("layers-list")).toBeVisible();
+  });
+
   test("Edit ▸ Transform Numerically brings it back", async ({ page }) => {
     await page.getByRole("button", { name: "Window", exact: true }).click();
     await page.getByRole("button", { name: "✓ Transform" }).click();
@@ -141,6 +163,8 @@ test.describe("Transform panel", () => {
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await page.getByTestId("menu-show-transform-panel").click();
     await expect(page.getByTestId("transform-panel")).toBeVisible();
+    // …opened, not merely present: a collapsed panel would be a dead end
+    await expect(page.getByTestId("transform-rotation")).toBeVisible();
   });
 });
 
@@ -150,6 +174,7 @@ test.describe("Transform tool on the canvas", () => {
   test.beforeEach(async ({ page }) => {
     log = await openEditor(page);
     await addLayer(page);
+    await openTransformPanel(page);
     await page.getByTestId("tool-transform").click();
   });
 
@@ -250,7 +275,7 @@ test.describe("Transform tool on the canvas", () => {
 
   test("a viewer cannot transform anything", async ({ page }) => {
     await openEditor(page, { role: "viewer" });
-    await expect(page.getByTestId("transform-panel")).toBeVisible();
+    await openTransformPanel2(page);
     await expect(page.getByTestId("transform-panel").getByText("Select a layer")).toBeVisible();
   });
 });

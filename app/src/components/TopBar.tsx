@@ -58,7 +58,7 @@ export default function TopBar({
     zoom, setZoom, setPan, undo, redo, undoStack, redoStack, selection,
     layers, selectedLayerId, selectedLayerIds, doc, showRulers, toggleRulers, setTool,
     view, setView, guides, clearGuides, panels, togglePanel, setSelection,
-    setTransformMode, setAllGroupsCollapsed,
+    setTransformMode, setAllGroupsCollapsed, panelCollapsed, togglePanelCollapsed,
   } = useEditorStore();
   const imgRef = useRef<HTMLInputElement>(null);
   const svgRef = useRef<HTMLInputElement>(null);
@@ -127,7 +127,13 @@ export default function TopBar({
               Warp
             </button>
             <button data-testid="menu-show-transform-panel"
-              onClick={() => { if (!panels.transform) togglePanel("transform"); close(); }}>
+              onClick={() => {
+                // Show it AND open it: the panel ships collapsed, so toggling
+                // visibility alone would leave the user staring at its header.
+                if (!panels.transform) togglePanel("transform");
+                if (panelCollapsed.transform) togglePanelCollapsed("transform");
+                close();
+              }}>
               Transform Numerically…
             </button>
           </Menu>

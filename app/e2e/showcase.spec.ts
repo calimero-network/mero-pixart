@@ -89,8 +89,10 @@ test.describe("Showcase gallery", () => {
     expect(depths).toContain("1");
     expect(depths).toContain("2");
 
-    // Selecting a warped tile shows its warp in the Transform panel.
+    // Selecting a warped tile shows its warp in the Transform panel (which ships
+    // collapsed, so open it first).
     await page.locator("[data-testid^='layer-row-']").filter({ hasText: "Tile 10" }).click();
+    await page.getByRole("button", { name: "Expand Transform" }).click();
     const brx = await page.getByTestId("warp-br-x").inputValue();
     const bry = await page.getByTestId("warp-br-y").inputValue();
     expect(Number(brx) !== 0 || Number(bry) !== 0).toBe(true);

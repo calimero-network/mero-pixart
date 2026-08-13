@@ -34,6 +34,21 @@ export function normalizeLayer(l: Layer): Layer {
 
 const MAX_HISTORY = 40;
 
+/**
+ * Which dock panels start collapsed to just their header.
+ *
+ * Transform and History are closed on purpose: five expanded panels push the
+ * Layers panel — the one people actually live in — below the fold on a 1000px-tall
+ * window. The canvas gizmo is the primary way to transform something, and
+ * Edit ▸ Transform Numerically… opens the panel when exact values are wanted.
+ *
+ * Exported so the test suite asserts the documented default rather than whatever
+ * a previous test left in this module-level store.
+ */
+export const DEFAULT_PANEL_COLLAPSED: Record<PanelId, boolean> = {
+  navigator: false, adjustments: false, transform: true, history: true, layers: false,
+};
+
 // A history entry captures the layers metadata plus a pixel snapshot (dataURL)
 // of any layer canvases that the operation is about to mutate.
 interface HistoryEntry {
@@ -208,8 +223,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   guides: [],
   panels: { navigator: true, adjustments: true, transform: true, history: true, layers: true },
-  // History starts collapsed to keep the dock compact (it's a tall list).
-  panelCollapsed: { navigator: false, adjustments: false, transform: false, history: true, layers: false },
+  panelCollapsed: { ...DEFAULT_PANEL_COLLAPSED },
   collapsedGroups: {},
 
   undoStack: [],

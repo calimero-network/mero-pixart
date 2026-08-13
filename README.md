@@ -113,7 +113,7 @@ layers, and cursors sync live between them.
 
 - **Tools** (left rail): move, brush, eraser, bucket, eyedropper, text, transform, hand/zoom — shortcuts `V B E G I T` etc.
 - **Layers** (right): a folder tree. Add raster/text/fill layers and folders, drag a row onto a folder to nest it (or onto the strip below the list to lift it out), click a folder's twirl to collapse its contents, double-click a name to rename. ⌘G groups the selection, ⌘⇧G ungroups. Selecting a folder selects everything inside it, so a drag on the canvas moves the group as one.
-- **Transform** (right): numeric position, angle, skew X/Y, mirror and the four warp corner pins, plus presets and *Apply* to bake. With the Transform tool the canvas gizmo does the same thing by hand — corners scale, edge grips shear, the top knob rotates (Shift constrains), and *Warp* mode swaps the handles for corner pins.
+- **Transform** (right, collapsed by default — open it from its header or *Edit ▸ Transform Numerically…*): numeric position, angle, skew X/Y, mirror and the four warp corner pins, plus presets and *Apply* to bake. With the Transform tool the canvas gizmo does the same thing by hand — corners scale, edge grips shear, the top knob rotates (Shift constrains), and *Warp* mode swaps the handles for corner pins.
 - **Adjustments** (right): brightness/contrast/saturation/hue/exposure/blur/invert sliders + a Curves editor.
 - **File menu**: open a showcase project, place an image, export PNG/JPG. **Top bar**: undo/redo, zoom, invite teammates, settings (roles, rename/resize).
 

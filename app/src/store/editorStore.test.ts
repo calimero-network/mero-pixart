@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { normalizeLayer, useEditorStore } from "./editorStore";
+import { DEFAULT_PANEL_COLLAPSED, normalizeLayer, useEditorStore } from "./editorStore";
 import type { Layer } from "../types";
 import { makeGroup, makeLayer } from "../test/factories";
 
@@ -317,8 +317,21 @@ describe("guides and panels", () => {
     const before = s().panels.transform;
     s().togglePanel("transform");
     expect(s().panels.transform).toBe(!before);
+    // Transform ships COLLAPSED (five open panels would push Layers off the
+    // dock), so the first toggle opens it.
+    const collapsedBefore = s().panelCollapsed.transform;
     s().togglePanelCollapsed("transform");
-    expect(s().panelCollapsed.transform).toBe(true);
+    expect(s().panelCollapsed.transform).toBe(!collapsedBefore);
+  });
+
+  it("ships with Transform and History collapsed, and Layers open", () => {
+    // Regression guard: adding a fifth EXPANDED dock panel pushed the Layers
+    // panel below the fold on a 1000px-tall window.
+    expect(DEFAULT_PANEL_COLLAPSED).toMatchObject({
+      transform: true, history: true, layers: false,
+    });
+    // and the store really starts from it
+    expect(useEditorStore.getInitialState().panelCollapsed).toEqual(DEFAULT_PANEL_COLLAPSED);
   });
 
   it("patches view settings without dropping the others", () => {

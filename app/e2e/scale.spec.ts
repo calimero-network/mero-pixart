@@ -136,6 +136,57 @@ test("panning does not get more expensive as elements pile up", async ({ page })
   }
 });
 
+test("moving the view around stays cheap", async ({ page }) => {
+  test.setTimeout(180_000);
+  // Panning and zooming change nothing about the document — no layer moves, no
+  // pixel changes, the flattened-document cache hits. All that should happen is
+  // re-blitting one cached canvas. This caught the transparency checkerboard
+  // being redrawn square by square (~40,000 fillRect per frame on a 1400x1800
+  // document), which is why moving the view felt heavy no matter how empty the
+  // document was.
+  const at: Record<string, number> = {};
+  for (const n of [LOW, HIGH]) {
+    await openWith(page, n);
+    at[`pan${n}`] = await (async () => {
+      await page.keyboard.down("Space");
+      await msPerMove(page, 20);
+      const v = await msPerMove(page, 60);
+      await page.keyboard.up("Space");
+      return v;
+    })();
+    at[`zoom${n}`] = await page.evaluate(async () => {
+      const el = document.querySelector('[data-testid="main-canvas"]')!;
+      const frame = () => new Promise((r) => requestAnimationFrame(() => r(null)));
+      const run = async (withWork: boolean) => {
+        await frame();
+        const t = performance.now();
+        for (let i = 1; i <= 60; i++) {
+          if (withWork) {
+            el.dispatchEvent(new WheelEvent("wheel", {
+              bubbles: true, cancelable: true, ctrlKey: true,
+              deltaY: i % 2 ? -40 : 40, clientX: 400, clientY: 300,
+            }));
+          }
+          await frame();
+        }
+        return performance.now() - t;
+      };
+      const idle = await run(false);
+      const busy = await run(true);
+      return Math.max(0, busy - idle) / 60;
+    });
+  }
+  console.log(`SCALE view: pan ${LOW}=${at[`pan${LOW}`].toFixed(3)}ms `
+    + `${HIGH}=${at[`pan${HIGH}`].toFixed(3)}ms | `
+    + `zoom ${LOW}=${at[`zoom${LOW}`].toFixed(3)}ms ${HIGH}=${at[`zoom${HIGH}`].toFixed(3)}ms`);
+
+  for (const [k, v] of Object.entries(at)) {
+    if (v >= FRAME_BUDGET_MS) {
+      throw new Error(`${k} costs ${v.toFixed(1)}ms/move, over the ${FRAME_BUDGET_MS}ms frame budget`);
+    }
+  }
+});
+
 test("painting does not get more expensive as elements pile up", async ({ page }) => {
   test.setTimeout(180_000);
   const cost = await compare(page, "brush", async (p) => {

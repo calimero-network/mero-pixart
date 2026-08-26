@@ -6,11 +6,19 @@ on:
     paths:
       - "logic/**"
       - "workflows/**"
+      # The workflow file itself. Without this, editing the merod image or the
+      # merobox pin below never runs the thing being edited — the change reads as
+      # untested-but-green, which is how a broken pin reached main.
+      - ".github/workflows/workflow-tests.yml"
   pull_request:
     branches: [main, master]
     paths:
       - "logic/**"
       - "workflows/**"
+      # The workflow file itself. Without this, editing the merod image or the
+      # merobox pin below never runs the thing being edited — the change reads as
+      # untested-but-green, which is how a broken pin reached main.
+      - ".github/workflows/workflow-tests.yml"
 
 concurrency:
   group: workflow-tests-${{ github.ref }}

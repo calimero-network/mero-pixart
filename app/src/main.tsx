@@ -69,20 +69,17 @@ function readTauriHashContext(): void {
 
   if (applicationId) setApplicationId(applicationId);
 
-  // Navigate to the specific canvas if tauri told us which project to open.
-  // "t" is a placeholder teamId — CanvasPage only needs projectId; teamId is
-  // only used by the Back button.
+  // Deep-link into the specific project/calendar when the desktop said which to
+  // open ("t" is a placeholder teamId — only the Back button uses it).
   //
-  // The hash is PRESERVED across this rewrite: MeroProvider has not read it yet,
-  // and it is the only copy of the auth callback. It strips the hash itself once
-  // it has consumed it.
-  if (contextId) {
-    window.history.replaceState(
-      {},
-      "",
-      `/teams/t/projects/${contextId}${hash}`,
-    );
-  }
+  // Always land on the app's own route, exactly as before — the desktop opens
+  // this window at `/`, and without this the user sits on the landing route.
+  //
+  // The hash is APPENDED, not dropped: MeroProvider has not read it yet and it
+  // is the only copy of the auth callback. It strips the hash itself once it has
+  // consumed it, which is what leaves the address bar clean.
+  const target = contextId ? `/teams/t/projects/${contextId}` : "/teams";
+  window.history.replaceState({}, "", `${target}${hash}`);
 }
 
 if (IS_TAURI) readTauriHashContext();
